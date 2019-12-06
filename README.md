@@ -1,6 +1,6 @@
 # GooMPy
 
-Interactive Google Maps for Python.  Tested with Python3.8.0.
+Interactive Google Maps for Python.  Tested with Python 3.8.0.
 
 GooMPy provides a Python interface to the Google Static Maps API, automatically
 downloading and stitching together map tiles into a single image that you can
