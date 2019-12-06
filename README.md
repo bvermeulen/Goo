@@ -1,6 +1,6 @@
 # GooMPy
 
-Interactive Google Maps for Python.  Tested with Python2.7 and Python3.6.
+Interactive Google Maps for Python.  Tested with Python3.8.0.
 
 GooMPy provides a Python interface to the Google Static Maps API, automatically
 downloading and stitching together map tiles into a single image that you can
@@ -20,8 +20,8 @@ time period, we recommend setting up an API key as described here:
 
   https://developers.google.com/maps/documentation/staticmaps/#api\_key
 
-Once you have your key, put it in the file goompy/key.py, and GooMPy will use
-it in fetching map tiles.  If you run out of downloads, the tiles will be black
+Once you have your key, put it in the file .env at project folder and GooMPy will use
+it in fetching map tiles. If you run out of downloads, the tiles will be black
 with a "capacity exceeded" image in them.
 
 Being updated by Bruno Vermeulen @2019
