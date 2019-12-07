@@ -64,7 +64,7 @@ class GooMPy(object):
         self.uppery = self._constrain(self.uppery, dy, self.height)
         self._update()
 
-    def useMaptype(self, maptype):
+    def use_map_type(self, maptype):
         '''
         Uses the specified map type 'roadmap', 'terrain', 'satellite', or 'hybrid'.
         Map tiles are fetched as needed.
@@ -72,7 +72,7 @@ class GooMPy(object):
         self.maptype = maptype
         self._fetch_and_update()
 
-    def useZoom(self, zoom):
+    def use_zoom(self, zoom):
         '''
         Uses the specified zoom level 0 through 22.
         Map tiles are fetched as needed.
@@ -106,3 +106,9 @@ class GooMPy(object):
         print(f'uppery: {self.uppery}, y: {y}')
 
         return _y_to_lat(y, self.lat, self.ntiles, self.zoom)
+
+    def get_x_from_lon(self, lon):
+        pass #TODO
+
+    def get_y_from_lat(self, lat):
+        pass #TODO

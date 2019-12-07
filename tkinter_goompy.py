@@ -25,7 +25,7 @@ HEIGHT = 500
 
 LATITUDE = 13.8135822
 LONGITUDE = 99.7146769
-ZOOM = 15
+ZOOM = 10
 MAPTYPE = 'roadmap'
 
 class UI(tk.Tk):
@@ -64,7 +64,7 @@ class UI(tk.Tk):
 
         self.goompy = GooMPy(
             WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, MAPTYPE,
-            radius_meters=None)
+            radius_meters=75_000)
 
         self.redraw()
 
@@ -120,7 +120,7 @@ class UI(tk.Tk):
         self.zoom_out_button.place(x=x, y=y + 30)
 
     def usemap(self, maptype):
-        self.goompy.useMaptype(maptype)
+        self.goompy.use_map_type(maptype)
         self.redraw()
 
     def zoom(self, sign):
@@ -128,7 +128,7 @@ class UI(tk.Tk):
         newlevel = self.zoomlevel + sign
         if 0 < newlevel < 22:
             self.zoomlevel = newlevel
-            self.goompy.useZoom(newlevel)
+            self.goompy.use_zoom(newlevel)
             self.redraw()
 
         self.set_cursor_to_normal()

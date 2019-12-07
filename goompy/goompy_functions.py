@@ -52,6 +52,10 @@ def _pixels_to_degrees(pixels, zoom):
     return pixels * 2 ** (21 - zoom)
 
 
+def _degrees_to_pixels(degrees, zoom):
+    return degrees * 2 ** (zoom - 21)
+
+
 def _grab_tile(lat, lon, zoom, maptype, _TILESIZE, sleeptime):
     urlbase = 'https://maps.googleapis.com/maps/api/staticmap?center=%f,%f&zoom=%d&maptype=%s&size=%dx%d&format=jpg' #pylint: disable=line-too-long
     urlbase += '&key=' + _KEY
@@ -114,6 +118,13 @@ def _y_to_lat(y, latitude, ntiles, zoom):
         math.pi/2 - 2 * math.atan(math.exp(((latpix + _pixels_to_degrees(
             y - 0.5 * (ntiles + 1) * _TILESIZE, zoom)) - _EARTHPIX) / _pixrad)))
 
+
+def _lon_to_x(lon, longitude, ntiles, zoom):
+    pass #TODO
+
+
+def _lat_to_y(lat, latitude, ntiles, zoom):
+    pass #TODO
 
 def _fetch_tiles(
     latitude, longitude, zoom, maptype, radius_meters, default_ntiles):
