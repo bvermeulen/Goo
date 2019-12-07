@@ -20,8 +20,8 @@ import tkinter as tk
 from PIL import ImageTk
 from goompy.goompy import GooMPy
 
-WIDTH = 640
-HEIGHT = 640
+WIDTH = 800
+HEIGHT = 500
 
 LATITUDE = 13.8135822
 LONGITUDE = 99.7146769
