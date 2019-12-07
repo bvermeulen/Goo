@@ -20,12 +20,12 @@ import tkinter as tk
 from PIL import ImageTk
 from goompy.goompy import GooMPy
 
-WIDTH = 800
-HEIGHT = 500
+WIDTH = 640
+HEIGHT = 640
 
-LATITUDE = 37.7913838
-LONGITUDE = -79.44398934
-ZOOM = 10
+LATITUDE = 13.8135822
+LONGITUDE = 99.7146769
+ZOOM = 15
 MAPTYPE = 'roadmap'
 
 class UI(tk.Tk):
@@ -64,7 +64,7 @@ class UI(tk.Tk):
 
         self.goompy = GooMPy(
             WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, MAPTYPE,
-            radius_meters=200_000)
+            radius_meters=None)
 
         self.redraw()
 
@@ -93,15 +93,19 @@ class UI(tk.Tk):
 
     def click(self, event):
         self.coords = event.x, event.y
+        lon = self.goompy.get_lon_from_x(event.x)
+        lat = self.goompy.get_lat_from_y(event.y)
+        print(f'(x, y): {self.coords} '
+              f'(lon, lat): ({lon:0.4f}, {lat:0.4f})')
 
     def drag(self, event):
         self.goompy.move(self.coords[0] - event.x, self.coords[1] - event.y)
-        self.image = self.goompy.getImage()
+        self.image = self.goompy.get_image()
         self.redraw()
         self.coords = event.x, event.y
 
     def redraw(self):
-        self.image = self.goompy.getImage()
+        self.image = self.goompy.get_image()
         self.image_tk = ImageTk.PhotoImage(self.image)
         self.label['image'] = self.image_tk
 

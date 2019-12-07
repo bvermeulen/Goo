@@ -14,7 +14,7 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 
 Updated by Bruno Vermeulen @2019
 '''
-from .goompy_functions import _new_image, fetchTiles
+from .goompy_functions import _new_image, _fetch_tiles, _x_to_lon, _y_to_lat
 
 class GooMPy(object):
 
@@ -40,6 +40,8 @@ class GooMPy(object):
 
         self.winimage = _new_image(self.width, self.height)
 
+        self.bigimage = None
+        self.ntiles = None
         self._fetch()
 
         halfsize = int(self.bigimage.size[0] / 2)
@@ -48,7 +50,7 @@ class GooMPy(object):
 
         self._update()
 
-    def getImage(self):
+    def get_image(self):
         '''
         Returns the current image as a PIL.Image object.
         '''
@@ -83,13 +85,24 @@ class GooMPy(object):
         self._update()
 
     def _fetch(self):
-        self.bigimage, self.northwest, self.southeast = fetchTiles(
+        self.bigimage, self.ntiles, self.northwest, self.southeast = _fetch_tiles(
             self.lat, self.lon, self.zoom, self.maptype,
-            self.radius_meters, default_ntiles=self.default_ntiles)
+            self.radius_meters, self.default_ntiles)
 
     def _update(self):
         self.winimage.paste(self.bigimage, (-self.leftx, -self.uppery))
 
     def _constrain(self, oldval, diff, dimsize):
         newval = oldval + diff
-        return newval if newval > 0 and newval < self.bigimage.size[0]-dimsize else oldval
+        return newval if 0 < newval < self.bigimage.size[0] - dimsize else oldval
+
+    def get_lon_from_x(self, x):
+        x += self.leftx
+        print(f'leftx: {self.leftx}, x: {x}')
+        return _x_to_lon(x, self.lon, self.ntiles, self.zoom)
+
+    def get_lat_from_y(self, y):
+        y += self.uppery
+        print(f'uppery: {self.uppery}, y: {y}')
+
+        return _y_to_lat(y, self.lat, self.ntiles, self.zoom)

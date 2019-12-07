@@ -86,17 +86,37 @@ def _grab_tile(lat, lon, zoom, maptype, _TILESIZE, sleeptime):
 
 def _pix_to_lon(j, lonpix, ntiles, _TILESIZE, zoom):
     return math.degrees(
-        (lonpix + _pixels_to_degrees(((j) - ntiles/2) * _TILESIZE, zoom) -
+        (lonpix + _pixels_to_degrees((j - ntiles/2) * _TILESIZE, zoom) -
          _EARTHPIX) / _pixrad)
 
 
 def _pix_to_lat(k, latpix, ntiles, _TILESIZE, zoom):
     return math.degrees(
         math.pi/2 - 2 * math.atan(math.exp(((latpix + _pixels_to_degrees(
-            (k-ntiles/2) * _TILESIZE, zoom)) - _EARTHPIX) / _pixrad)))
+            (k - ntiles/2) * _TILESIZE, zoom)) - _EARTHPIX) / _pixrad)))
 
 
-def fetchTiles(latitude, longitude, zoom, maptype, radius_meters=None, default_ntiles=4):
+def _x_to_lon(x, longitude, ntiles, zoom):
+    longitude = _roundto(longitude, _DEGREE_PRECISION)
+    lonpix = _EARTHPIX + longitude * math.radians(_pixrad)
+
+    return math.degrees(
+        (lonpix + _pixels_to_degrees(x - 0.5 * (ntiles + 1) * _TILESIZE, zoom) -
+         _EARTHPIX) /_pixrad)
+
+
+def _y_to_lat(y, latitude, ntiles, zoom):
+    latitude = _roundto(latitude, _DEGREE_PRECISION)
+    sinlat = math.sin(math.radians(latitude))
+    latpix = _EARTHPIX - _pixrad * math.log((1 + sinlat)/(1 - sinlat)) / 2
+
+    return math.degrees(
+        math.pi/2 - 2 * math.atan(math.exp(((latpix + _pixels_to_degrees(
+            y - 0.5 * (ntiles + 1) * _TILESIZE, zoom)) - _EARTHPIX) / _pixrad)))
+
+
+def _fetch_tiles(
+    latitude, longitude, zoom, maptype, radius_meters, default_ntiles):
     '''
     Fetches tiles from GoogleMaps at the specified coordinates, zoom level (0-22), and map
     type ('roadmap', 'terrain', 'satellite', or 'hybrid').  The value of radius_meters
@@ -129,11 +149,11 @@ def fetchTiles(latitude, longitude, zoom, maptype, radius_meters=None, default_n
             tile = _grab_tile(lat, lon, zoom, maptype, _TILESIZE, 1./_GRABRATE)
             bigimage.paste(tile, (j *_TILESIZE, k * _TILESIZE))
 
-    west = _pix_to_lon(0, lonpix, ntiles, _TILESIZE, zoom)
-    east = _pix_to_lon(ntiles-1, lonpix, ntiles, _TILESIZE, zoom)
+    west = _pix_to_lon(0 - 0.5, lonpix, ntiles, _TILESIZE, zoom)
+    east = _pix_to_lon(ntiles - 0.5, lonpix, ntiles, _TILESIZE, zoom)
 
-    north = _pix_to_lat(0, latpix, ntiles, _TILESIZE, zoom)
-    south = _pix_to_lat(ntiles-1, latpix, ntiles, _TILESIZE, zoom)
+    north = _pix_to_lat(0 - 0.5, latpix, ntiles, _TILESIZE, zoom)
+    south = _pix_to_lat(ntiles - 0.5, latpix, ntiles, _TILESIZE, zoom)
 
     #TODO: DEBUG PRINT LINE
     print(f'------------------------------------------------\n'
@@ -141,4 +161,4 @@ def fetchTiles(latitude, longitude, zoom, maptype, radius_meters=None, default_n
           f'north: {north:0.4f}, south: {south:0.4f}\n'
           f'tiles: {ntiles}, zoom: {zoom}')
 
-    return bigimage, (north, west), (south, east)
+    return bigimage, ntiles, (north, west), (south, east)
