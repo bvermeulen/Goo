@@ -14,7 +14,8 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 
 Updated by Bruno Vermeulen @2019
 '''
-from ._goompy_functions import _new_image, _fetch_tiles, _x_to_lon, _y_to_lat
+from ._goompy_functions import (_TILESIZE, _new_image, _fetch_tiles, _x_to_lon, _y_to_lat,
+                                _lon_to_x, _lat_to_y)
 
 
 class GooMPy(object):
@@ -42,13 +43,20 @@ class GooMPy(object):
         self.winimage = _new_image(self.width, self.height)
 
         self.bigimage = None
+        self.leftx = None
+        self.uppery = None
         self.ntiles = None
-        self._fetch()
 
+    def use_map_type(self, maptype):
+        '''
+        Uses the specified map type 'roadmap', 'terrain', 'satellite', or 'hybrid'.
+        Map tiles are fetched as needed.
+        '''
+        self.maptype = maptype
+        self._fetch()
         halfsize = int(self.bigimage.size[0] / 2)
         self.leftx = halfsize
         self.uppery = halfsize
-
         self._update()
 
     def get_image(self):
@@ -63,15 +71,6 @@ class GooMPy(object):
         '''
         self.leftx = self._constrain(self.leftx, dx, self.width)
         self.uppery = self._constrain(self.uppery, dy, self.height)
-        self._update()
-
-    def use_map_type(self, maptype):
-        '''
-        Uses the specified map type 'roadmap', 'terrain', 'satellite', or 'hybrid'.
-        Map tiles are fetched as needed.
-        '''
-        self.maptype = maptype
-        self._fetch()
         self._update()
 
     def use_zoom(self, zoom):
@@ -98,16 +97,17 @@ class GooMPy(object):
     def get_lon_from_x(self, x):
         x += self.leftx
         print(f'leftx: {self.leftx}, x: {x}')
-        return _x_to_lon(x, self.lon, self.ntiles, self.zoom)
+
+        return _x_to_lon(x - 0.5 * (self.ntiles + 1) * _TILESIZE, self.lon, self.zoom)
 
     def get_lat_from_y(self, y):
         y += self.uppery
         print(f'uppery: {self.uppery}, y: {y}')
 
-        return _y_to_lat(y, self.lat, self.ntiles, self.zoom)
+        return _y_to_lat(y - 0.5 * (self.ntiles + 1) * _TILESIZE, self.lat, self.zoom)
 
     def get_x_from_lon(self, lon):
-        pass #TODO
+        return _lon_to_x(lon, self.lon, self.ntiles, self.zoom)
 
     def get_y_from_lat(self, lat):
-        pass #TODO
+        return _lat_to_y(lat, self.lat, self.ntiles, self.zoom)

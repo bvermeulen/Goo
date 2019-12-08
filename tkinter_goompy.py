@@ -68,9 +68,9 @@ class UI(tk.Tk):
         self.radiovar.set(maptype_index)
 
         self.goompy = GooMPy(
-            WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, MAPTYPE,
-            radius_meters=None)
+            WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, MAPTYPE, radius_meters=None)
 
+        self.goompy.use_map_type(MAPTYPE)
         self.redraw()
 
     def add_zoom_button(self, text, sign):
