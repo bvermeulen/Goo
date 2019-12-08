@@ -99,8 +99,8 @@ def _y_to_lat(y, latitude, zoom):
     latpix = _EARTHPIX - _pixrad * m.log((1 + sinlat)/(1 - sinlat)) / 2
 
     return m.degrees(
-        m.pi/2 - 2 * m.atan(m.exp((latpix + _zoom_factor(zoom) *
-            y - _EARTHPIX) / _pixrad)))
+        m.pi/2 - 2 * m.atan(m.exp((latpix + _zoom_factor(zoom) * y -
+                                   _EARTHPIX) / _pixrad)))
 
 
 def _lon_to_x(lon, longitude, ntiles, zoom):
@@ -142,7 +142,7 @@ def _fetch_tiles(
     bigimage = _new_image(bigsize, bigsize)
 
     for j in range(ntiles):
-        lon = _x_to_lon((j - ntiles / 2) * _TILESIZE, longitude , zoom)
+        lon = _x_to_lon((j - ntiles / 2) * _TILESIZE, longitude, zoom)
 
         for k in range(ntiles):
             lat = _y_to_lat((k - ntiles / 2) * _TILESIZE, latitude, zoom)

@@ -91,7 +91,7 @@ class UI(tk.Tk):
         self.config(cursor='watch')
         self.update_idletasks()
 
-    def add_radio_button(self, text, index):
+    def add_radio_button(self, _, index):
         maptype = self.maptypes[index]
         tk.Radiobutton(self.radiogroup, text=maptype, variable=self.radiovar, value=index,
                        command=lambda: self.usemap(maptype)).grid(row=0, column=index)

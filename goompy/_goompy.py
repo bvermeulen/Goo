@@ -43,8 +43,8 @@ class GooMPy(object):
         self.winimage = _new_image(self.width, self.height)
 
         self.bigimage = None
-        self.leftx = None
-        self.uppery = None
+        self.leftx = 0
+        self.uppery = 0
         self.ntiles = None
 
     def use_map_type(self, maptype):

@@ -1,7 +1,6 @@
 '''lat, long conversions tests to/ from pixels
    tests for 4 quandrants in the world
 '''
-import pytest
 from goompy import GooMPy
 
 WIDTH = 800
