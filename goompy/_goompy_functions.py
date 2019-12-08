@@ -18,7 +18,7 @@ Updated by Bruno Vermeulen @2019
 '''
 import os
 import time
-import math
+import math as m
 from io import BytesIO
 import urllib.request
 import PIL.Image
@@ -26,7 +26,7 @@ import PIL.Image
 try:
     from .key import _KEY
 
-except:  #pylint: disable=bare-except
+except:  # pylint: disable=bare-except
     print('google api key required')
     exit()
 
@@ -37,7 +37,7 @@ _DEGREE_PRECISION = 4  # Number of decimal places for rounding coordinates
 _TILESIZE = 640        # Larget tile we can grab without paying (was 640)
 _GRABRATE = 4          # Fastest rate at which we can download tiles without paying
 
-_pixrad = _EARTHPIX / math.pi
+_pixrad = _EARTHPIX / m.pi
 
 
 def _new_image(width, height):
@@ -48,16 +48,13 @@ def _roundto(value, digits):
     return int(value * 10**digits) / 10.**digits
 
 
-def _pixels_to_degrees(pixels, zoom):
-    return pixels * 2 ** (21 - zoom)
-
-
-def _degrees_to_pixels(degrees, zoom):
-    return degrees * 2 ** (zoom - 21)
+def _zoom_factor(zoom):
+    ''' apply factor according to zoom '''
+    return 2 ** (21 - zoom)
 
 
 def _grab_tile(lat, lon, zoom, maptype, _TILESIZE, sleeptime):
-    urlbase = 'https://maps.googleapis.com/maps/api/staticmap?center=%f,%f&zoom=%d&maptype=%s&size=%dx%d&format=jpg' #pylint: disable=line-too-long
+    urlbase = 'https://maps.googleapis.com/maps/api/staticmap?center=%f,%f&zoom=%d&maptype=%s&size=%dx%d&format=jpg'  # pylint: disable=line-too-long
     urlbase += '&key=' + _KEY
 
     specs = lat, lon, zoom, maptype, _TILESIZE, _TILESIZE
@@ -83,51 +80,61 @@ def _grab_tile(lat, lon, zoom, maptype, _TILESIZE, sleeptime):
             os.mkdir('mapscache')
 
         tile.save(filename)
-        time.sleep(sleeptime) # Choke back speed to avoid maxing out limit
+        time.sleep(sleeptime)  # Choke back speed to avoid maxing out limit
 
     return tile
 
 
 def _pix_to_lon(j, lonpix, ntiles, _TILESIZE, zoom):
-    return math.degrees(
-        (lonpix + _pixels_to_degrees((j - ntiles/2) * _TILESIZE, zoom) -
+    return m.degrees(
+        (lonpix + _zoom_factor(zoom) * ((j - ntiles/2) * _TILESIZE) -
          _EARTHPIX) / _pixrad)
 
 
 def _pix_to_lat(k, latpix, ntiles, _TILESIZE, zoom):
-    return math.degrees(
-        math.pi/2 - 2 * math.atan(math.exp(((latpix + _pixels_to_degrees(
-            (k - ntiles/2) * _TILESIZE, zoom)) - _EARTHPIX) / _pixrad)))
+    return m.degrees(
+        m.pi/2 - 2 * m.atan(m.exp(((latpix + _zoom_factor(zoom) * (
+            (k - ntiles/2) * _TILESIZE)) - _EARTHPIX) / _pixrad)))
 
 
 def _x_to_lon(x, longitude, ntiles, zoom):
     longitude = _roundto(longitude, _DEGREE_PRECISION)
-    lonpix = _EARTHPIX + longitude * math.radians(_pixrad)
+    lonpix = _EARTHPIX + longitude * m.radians(_pixrad)
 
-    return math.degrees(
-        (lonpix + _pixels_to_degrees(x - 0.5 * (ntiles + 1) * _TILESIZE, zoom) -
-         _EARTHPIX) /_pixrad)
+    return m.degrees(
+        (lonpix + _zoom_factor(zoom) * (x - 0.5 * (ntiles + 1) * _TILESIZE) -
+         _EARTHPIX) / _pixrad)
 
 
 def _y_to_lat(y, latitude, ntiles, zoom):
     latitude = _roundto(latitude, _DEGREE_PRECISION)
-    sinlat = math.sin(math.radians(latitude))
-    latpix = _EARTHPIX - _pixrad * math.log((1 + sinlat)/(1 - sinlat)) / 2
+    sinlat = m.sin(m.radians(latitude))
+    latpix = _EARTHPIX - _pixrad * m.log((1 + sinlat)/(1 - sinlat)) / 2
 
-    return math.degrees(
-        math.pi/2 - 2 * math.atan(math.exp(((latpix + _pixels_to_degrees(
-            y - 0.5 * (ntiles + 1) * _TILESIZE, zoom)) - _EARTHPIX) / _pixrad)))
+    return m.degrees(
+        m.pi/2 - 2 * m.atan(m.exp(((latpix + _zoom_factor(zoom) * (
+            y - 0.5 * (ntiles + 1) * _TILESIZE)) - _EARTHPIX) / _pixrad)))
 
 
 def _lon_to_x(lon, longitude, ntiles, zoom):
-    pass #TODO
+    lonpix = _EARTHPIX + longitude * m.radians(_pixrad)
+    lon = m.radians(lon)
+    return round((_EARTHPIX + lon * _pixrad - lonpix) / _zoom_factor(zoom)
+                 + 0.5 * (ntiles + 1) * _TILESIZE)
 
 
 def _lat_to_y(lat, latitude, ntiles, zoom):
-    pass #TODO
+    sinlat = m.sin(m.radians(latitude))
+    latpix = _EARTHPIX - _pixrad * m.log((1 + sinlat)/(1 - sinlat)) / 2
+
+    lat = m.radians(lat)
+    pix = ((_EARTHPIX + _pixrad * m.log(m.tan(m.pi / 4 - lat / 2)) - latpix) /
+           _zoom_factor(zoom))
+    return round(pix + 0.5 * (ntiles + 1) * _TILESIZE)
+
 
 def _fetch_tiles(
-    latitude, longitude, zoom, maptype, radius_meters, default_ntiles):
+        latitude, longitude, zoom, maptype, radius_meters, default_ntiles):
     '''
     Fetches tiles from GoogleMaps at the specified coordinates, zoom level (0-22), and map
     type ('roadmap', 'terrain', 'satellite', or 'hybrid').  The value of radius_meters
@@ -138,16 +145,16 @@ def _fetch_tiles(
     longitude = _roundto(longitude, _DEGREE_PRECISION)
 
     # https://groups.google.com/forum/#!topic/google-maps-js-api-v3/hDRO4oHVSeM
-    pixels_per_meter = 2**zoom / (156543.03392 * math.cos(math.radians(latitude)))
+    pixels_per_meter = 2**zoom / (156543.03392 * m.cos(m.radians(latitude)))
 
     # number of tiles required to go from center latitude to desired radius in meters
     ntiles = default_ntiles if radius_meters is None else (
         int(round(2 * pixels_per_meter / (_TILESIZE / 2. / radius_meters))))
 
-    lonpix = _EARTHPIX + longitude * math.radians(_pixrad)
+    lonpix = _EARTHPIX + longitude * m.radians(_pixrad)
 
-    sinlat = math.sin(math.radians(latitude))
-    latpix = _EARTHPIX - _pixrad * math.log((1 + sinlat)/(1 - sinlat)) / 2
+    sinlat = m.sin(m.radians(latitude))
+    latpix = _EARTHPIX - _pixrad * m.log((1 + sinlat)/(1 - sinlat)) / 2
 
     bigsize = ntiles * _TILESIZE
     bigimage = _new_image(bigsize, bigsize)
@@ -158,7 +165,7 @@ def _fetch_tiles(
         for k in range(ntiles):
             lat = _pix_to_lat(k, latpix, ntiles, _TILESIZE, zoom)
             tile = _grab_tile(lat, lon, zoom, maptype, _TILESIZE, 1./_GRABRATE)
-            bigimage.paste(tile, (j *_TILESIZE, k * _TILESIZE))
+            bigimage.paste(tile, (j * _TILESIZE, k * _TILESIZE))
 
     west = _pix_to_lon(0 - 0.5, lonpix, ntiles, _TILESIZE, zoom)
     east = _pix_to_lon(ntiles - 0.5, lonpix, ntiles, _TILESIZE, zoom)
@@ -166,7 +173,7 @@ def _fetch_tiles(
     north = _pix_to_lat(0 - 0.5, latpix, ntiles, _TILESIZE, zoom)
     south = _pix_to_lat(ntiles - 0.5, latpix, ntiles, _TILESIZE, zoom)
 
-    #TODO: DEBUG PRINT LINE
+    # TODO: DEBUG PRINT LINE
     print(f'------------------------------------------------\n'
           f'west: {west:0.4f}, east: {east:0.4f}\n'
           f'north: {north:0.4f}, south: {south:0.4f}\n'

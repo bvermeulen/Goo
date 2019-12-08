@@ -18,15 +18,20 @@ Updated by Bruno Vermeulen @2019
 '''
 import tkinter as tk
 from PIL import ImageTk
-from goompy.goompy import GooMPy
+from goompy import GooMPy
 
 WIDTH = 800
 HEIGHT = 500
 
-LATITUDE = 13.8135822
-LONGITUDE = 99.7146769
-ZOOM = 10
+# LATITUDE = 13.8135822
+# LONGITUDE = 99.7146769
+LATITUDE = -33.8566
+LONGITUDE = 151.2153
+
+
+ZOOM = 15
 MAPTYPE = 'roadmap'
+
 
 class UI(tk.Tk):
 
@@ -64,7 +69,7 @@ class UI(tk.Tk):
 
         self.goompy = GooMPy(
             WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, MAPTYPE,
-            radius_meters=75_000)
+            radius_meters=None)
 
         self.redraw()
 
@@ -120,7 +125,9 @@ class UI(tk.Tk):
         self.zoom_out_button.place(x=x, y=y + 30)
 
     def usemap(self, maptype):
+        self.set_cursor_to_wait()
         self.goompy.use_map_type(maptype)
+        self.set_cursor_to_normal()
         self.redraw()
 
     def zoom(self, sign):
@@ -134,8 +141,9 @@ class UI(tk.Tk):
         self.set_cursor_to_normal()
 
     def check_quit(self, event):
-        if ord(event.char) == 27: # ESC
+        if ord(event.char) == 27:  # ESC
             exit(0)
+
 
 if __name__ == '__main__':
     UI().mainloop()

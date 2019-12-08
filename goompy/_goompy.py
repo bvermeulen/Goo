@@ -14,7 +14,8 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 
 Updated by Bruno Vermeulen @2019
 '''
-from .goompy_functions import _new_image, _fetch_tiles, _x_to_lon, _y_to_lat
+from ._goompy_functions import _new_image, _fetch_tiles, _x_to_lon, _y_to_lat
+
 
 class GooMPy(object):
 
@@ -70,7 +71,8 @@ class GooMPy(object):
         Map tiles are fetched as needed.
         '''
         self.maptype = maptype
-        self._fetch_and_update()
+        self._fetch()
+        self._update()
 
     def use_zoom(self, zoom):
         '''
@@ -78,9 +80,6 @@ class GooMPy(object):
         Map tiles are fetched as needed.
         '''
         self.zoom = zoom
-        self._fetch_and_update()
-
-    def _fetch_and_update(self):
         self._fetch()
         self._update()
 
