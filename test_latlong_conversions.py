@@ -1,5 +1,7 @@
 '''lat, long conversions tests to/ from pixels
    tests for 4 quandrants in the world
+
+   Values are for ntiles = 4 only !
 '''
 from goompy import GooMPy
 
@@ -28,8 +30,8 @@ class TestNL:
         WIDTH, HEIGHT, LATITUDE, LONGITUDE, zoom, MAPTYPE, radius_meters=None)
     goompy.use_map_type(MAPTYPE)
 
-    goompy.leftx = 1280
-    goompy.uppery = 1280
+    goompy.leftx = 960
+    goompy.uppery = 960
 
     def test_get_lon_from_x_nl(self):
         x_pixels = self.test_set_nl.get('x_pixels')
@@ -81,8 +83,8 @@ class TestUS:
         WIDTH, HEIGHT, LATITUDE, LONGITUDE, zoom, MAPTYPE, radius_meters=None)
     goompy.use_map_type(MAPTYPE)
 
-    goompy.leftx = 1280
-    goompy.uppery = 1280
+    goompy.leftx = 960
+    goompy.uppery = 960
 
     def test_get_lon_from_x_us(self):
         x_pixels = self.test_set_us.get('x_pixels')
@@ -121,10 +123,10 @@ class TestAR:
     test_set_ar = {
         'LATITUDE': -34.6246,
         'LONGITUDE': -58.4017,
-        'longitude_result': -58.4589,
-        'latitude_result': -34.6109,
-        'x_pixels': 266,
-        'y_pixels': 572,
+        'longitude_result': -58.4515,
+        'latitude_result': -34.6678,
+        'x_pixels': 117,
+        'y_pixels': 584,
     }
 
     LONGITUDE = test_set_ar.get('LONGITUDE')
@@ -134,8 +136,8 @@ class TestAR:
         WIDTH, HEIGHT, LATITUDE, LONGITUDE, zoom, MAPTYPE, radius_meters=None)
     goompy.use_map_type(MAPTYPE)
 
-    goompy.leftx = 0
-    goompy.uppery = 640
+    goompy.leftx = 2
+    goompy.uppery = 1919
 
     def test_get_lon_from_x_ar(self):
         x_pixels = self.test_set_ar.get('x_pixels')
@@ -187,8 +189,8 @@ class TestAU:
         WIDTH, HEIGHT, LATITUDE, LONGITUDE, zoom, MAPTYPE, radius_meters=None)
     goompy.use_map_type(MAPTYPE)
 
-    goompy.leftx = 1920
-    goompy.uppery = 1920
+    goompy.leftx = 1600
+    goompy.uppery = 1600
 
     def test_get_lon_from_x_au(self):
         x_pixels = self.test_set_au.get('x_pixels')
@@ -241,7 +243,7 @@ if __name__ == '__main__':
         WIDTH, HEIGHT, LATITUDE, LONGITUDE, zoom, MAPTYPE, radius_meters=None)
     goompy.use_map_type(MAPTYPE)
     goompy.leftx = 0
-    goompy.uppery = 640
+    goompy.uppery = 572
 
     print(goompy.get_lon_from_x(test_set_ar.get('x_pixels')))
     print(goompy.get_lat_from_y(test_set_ar.get('y_pixels')))

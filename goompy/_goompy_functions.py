@@ -107,7 +107,7 @@ def _lon_to_x(lon, longitude, ntiles, zoom):
     lonpix = _EARTHPIX + longitude * m.radians(_pixrad)
     lon = m.radians(lon)
     return round((_EARTHPIX + lon * _pixrad - lonpix) / _zoom_factor(zoom)
-                 + 0.5 * (ntiles + 1) * _TILESIZE)
+                 + 0.5 * ntiles * _TILESIZE)
 
 
 def _lat_to_y(lat, latitude, ntiles, zoom):
@@ -117,7 +117,7 @@ def _lat_to_y(lat, latitude, ntiles, zoom):
     lat = m.radians(lat)
     pix = ((_EARTHPIX + _pixrad * m.log(m.tan(m.pi / 4 - lat / 2)) - latpix) /
            _zoom_factor(zoom))
-    return round(pix + 0.5 * (ntiles + 1) * _TILESIZE)
+    return round(pix + 0.5 * ntiles * _TILESIZE)
 
 
 def _fetch_tiles(
@@ -142,18 +142,19 @@ def _fetch_tiles(
     bigimage = _new_image(bigsize, bigsize)
 
     for j in range(ntiles):
-        lon = _x_to_lon((j - ntiles / 2) * _TILESIZE, longitude, zoom)
+        lon = _x_to_lon((j - ntiles / 2 + 0.5) * _TILESIZE, longitude, zoom)
 
         for k in range(ntiles):
-            lat = _y_to_lat((k - ntiles / 2) * _TILESIZE, latitude, zoom)
+            lat = _y_to_lat((k - ntiles / 2 + 0.5) * _TILESIZE, latitude, zoom)
+
             tile = _grab_tile(lat, lon, zoom, maptype, _TILESIZE, 1./_GRABRATE)
             bigimage.paste(tile, (j * _TILESIZE, k * _TILESIZE))
 
-    west = _x_to_lon((- 0.5 - ntiles / 2) * _TILESIZE, longitude, zoom)
-    east = _x_to_lon((ntiles / 2 - 0.5) * _TILESIZE, longitude, zoom)
+    west = _x_to_lon(-ntiles / 2 * _TILESIZE, longitude, zoom)
+    east = _x_to_lon(ntiles / 2 * _TILESIZE, longitude, zoom)
 
-    north = _y_to_lat((- 0.5  -ntiles  / 2) * _TILESIZE, latitude, zoom)
-    south = _y_to_lat((ntiles / 2 - 0.5) * _TILESIZE, latitude, zoom)
+    north = _y_to_lat(-ntiles / 2 * _TILESIZE, latitude, zoom)
+    south = _y_to_lat(ntiles / 2 * _TILESIZE, latitude, zoom)
 
     # TODO: DEBUG PRINT LINE
     print(f'------------------------------------------------\n'

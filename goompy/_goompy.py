@@ -55,8 +55,8 @@ class GooMPy(object):
         self.maptype = maptype
         self._fetch()
         halfsize = int(self.bigimage.size[0] / 2)
-        self.leftx = halfsize
-        self.uppery = halfsize
+        self.leftx = halfsize - _TILESIZE / 2
+        self.uppery = halfsize - _TILESIZE / 2
         self._update()
 
     def get_image(self):
@@ -88,23 +88,23 @@ class GooMPy(object):
             self.radius_meters, self.default_ntiles)
 
     def _update(self):
-        self.winimage.paste(self.bigimage, (-self.leftx, -self.uppery))
+        self.winimage.paste(self.bigimage, (-int(self.leftx), -int(self.uppery)))
 
     def _constrain(self, oldval, diff, dimsize):
         newval = oldval + diff
-        return newval if 0 < newval < self.bigimage.size[0] - dimsize else oldval
+        return newval if 0 <= newval <= self.bigimage.size[0] - dimsize else oldval
 
     def get_lon_from_x(self, x):
         x += self.leftx
         print(f'leftx: {self.leftx}, x: {x}')
 
-        return _x_to_lon(x - 0.5 * (self.ntiles + 1) * _TILESIZE, self.lon, self.zoom)
+        return _x_to_lon(x - 0.5 * self.ntiles * _TILESIZE, self.lon, self.zoom)
 
     def get_lat_from_y(self, y):
         y += self.uppery
         print(f'uppery: {self.uppery}, y: {y}')
 
-        return _y_to_lat(y - 0.5 * (self.ntiles + 1) * _TILESIZE, self.lat, self.zoom)
+        return _y_to_lat(y - 0.5 * self.ntiles * _TILESIZE, self.lat, self.zoom)
 
     def get_x_from_lon(self, lon):
         return _lon_to_x(lon, self.lon, self.ntiles, self.zoom)
