@@ -88,6 +88,8 @@ class GooMPy(object):
             self.radius_meters, self.default_ntiles)
 
     def _update(self):
+        bbox = (int(self.leftx), int(self.uppery),
+                int(self.leftx) + self.width, int(self.uppery) + self.height)
         self.winimage.paste(self.bigimage, (-int(self.leftx), -int(self.uppery)))
 
     def _constrain(self, oldval, diff, dimsize):
@@ -111,3 +113,9 @@ class GooMPy(object):
 
     def get_y_from_lat(self, lat):
         return _lat_to_y(lat, self.lat, self.ntiles, self.zoom)
+
+    def get_xwin_from_lon(self, lon):
+        return _lon_to_x(lon, self.lon, self.ntiles, self.zoom) - self.leftx
+
+    def get_ywin_from_lat(self, lat):
+        return _lat_to_y(lat, self.lat, self.ntiles, self.zoom) - self.uppery

@@ -17,7 +17,7 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 Updated by Bruno Vermeulen @2019
 '''
 import tkinter as tk
-from PIL import ImageTk
+from PIL import ImageTk, Image
 from goompy import GooMPy
 
 WIDTH = 640
@@ -40,11 +40,12 @@ class UI(tk.Tk):
         tk.Tk.__init__(self)
 
         self.geometry('%dx%d+500+500' % (WIDTH, HEIGHT))
+        # self.geometry(f'{WIDTH}x{HEIGHT}')
         self.title('GooMPy')
 
         self.canvas = tk.Canvas(self, width=WIDTH, height=HEIGHT)
 
-        self.canvas.pack()
+        self.canvas.pack(fill='both')
 
         self.bind("<Key>", self.check_quit)
         self.bind('<B1-Motion>', self.drag)
@@ -106,16 +107,16 @@ class UI(tk.Tk):
 
     def drag(self, event):
         self.goompy.move(self.coords[0] - event.x, self.coords[1] - event.y)
-        self.image = self.goompy.get_image()
         self.redraw()
         self.coords = event.x, event.y
 
     def redraw(self):
-        self.image = self.goompy.get_image()
-        self.image_tk = ImageTk.PhotoImage(self.image)
-        self.label['image'] = self.image_tk
+        image = self.goompy.get_image()
+        self.my_image = ImageTk.PhotoImage(image)
+        self.canvas.create_image(0,0, image=self.my_image, anchor='nw')
 
-        self.label.place(x=0, y=0, width=WIDTH, height=HEIGHT)
+        # self.label['image'] = self.my_image
+        # self.label.place(x=0, y=0, width=WIDTH, height=HEIGHT)
 
         self.radiogroup.place(x=0, y=0)
 
@@ -124,6 +125,8 @@ class UI(tk.Tk):
 
         self.zoom_in_button.place(x=x, y=y)
         self.zoom_out_button.place(x=x, y=y + 30)
+
+        self.draw_point(LATITUDE, LONGITUDE)
 
     def usemap(self, maptype):
         self.set_cursor_to_wait()
@@ -140,6 +143,12 @@ class UI(tk.Tk):
             self.redraw()
 
         self.set_cursor_to_normal()
+
+    def draw_point(self, lat, lon):
+        x = self.goompy.get_xwin_from_lon(lon)
+        y = self.goompy.get_ywin_from_lat(lat)
+        bbox = (x - 10, y - 10, x + 20, y + 20)
+        self.canvas.create_oval(*bbox, fill='red')
 
     def check_quit(self, event):
         if ord(event.char) == 27:  # ESC
