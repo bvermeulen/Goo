@@ -14,14 +14,14 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 
 Updated by Bruno Vermeulen @2019
 '''
-from ._goompy_functions import (_TILESIZE, _new_image, _fetch_tiles, _x_to_lon, _y_to_lat,
-                                _lon_to_x, _lat_to_y)
+from ._goompy_functions import (_TILESIZE, _new_image, _init_big_image, _fetch_tiles,
+                                _x_to_lon, _y_to_lat, _lon_to_x, _lat_to_y)
 
 
 class GooMPy(object):
 
-    def __init__(self, width, height, latitude, longitude, zoom,
-                 maptype, radius_meters=None, default_ntiles=4):
+    def __init__(self, width, height, latitude, longitude,
+                 zoom, radius_meters=None, default_ntiles=4):
         '''
         Creates a GooMPy object for specified display width and height at the specified
         coordinates, zoom level (0-22), and map type ('roadmap', 'terrain', 'satellite',
@@ -31,21 +31,21 @@ class GooMPy(object):
         '''
         self.lat = latitude
         self.lon = longitude
+        self.zoom = zoom
 
         self.width = width
         self.height = height
-
-        self.zoom = zoom
-        self.maptype = maptype
         self.radius_meters = radius_meters
-        self.default_ntiles = default_ntiles
+        self.ntiles = default_ntiles
 
         self.winimage = _new_image(self.width, self.height)
+        self.bigimage = _init_big_image(self.ntiles)
 
-        self.bigimage = None
-        self.leftx = 0
-        self.uppery = 0
-        self.ntiles = None
+        self.halfsize = int(self.bigimage.size[0] / 2)
+        self.leftx = self.halfsize - self.width / 2
+        self.uppery = self.halfsize - self.height / 2
+
+        self.maptype = None
 
     def use_map_type(self, maptype):
         '''
@@ -54,9 +54,6 @@ class GooMPy(object):
         '''
         self.maptype = maptype
         self._fetch()
-        halfsize = int(self.bigimage.size[0] / 2)
-        self.leftx = halfsize - _TILESIZE / 2
-        self.uppery = halfsize - _TILESIZE / 2
         self._update()
 
     def get_image(self):
@@ -76,20 +73,24 @@ class GooMPy(object):
     def use_zoom(self, zoom):
         '''
         Uses the specified zoom level 0 through 22.
-        Map tiles are fetched as needed.
+        Map tiles are fetched as needed and centered around the center point
         '''
+        # calculate the new center point lat, lon with the old zoom!
+        self.lat = self.get_lat_from_y(self.height / 2)
+        self.lon = self.get_lon_from_x(self.width / 2)
+
+        # change zoom, fetch new tiles and center
         self.zoom = zoom
         self._fetch()
+        self.leftx = self.halfsize - self.width / 2
+        self.uppery = self.halfsize - self.height / 2
         self._update()
 
     def _fetch(self):
         self.bigimage, self.ntiles, self.northwest, self.southeast = _fetch_tiles(
-            self.lat, self.lon, self.zoom, self.maptype,
-            self.radius_meters, self.default_ntiles)
+            self.lat, self.lon, self.zoom, self.maptype, self.radius_meters, self.ntiles)
 
     def _update(self):
-        bbox = (int(self.leftx), int(self.uppery),
-                int(self.leftx) + self.width, int(self.uppery) + self.height)
         self.winimage.paste(self.bigimage, (-int(self.leftx), -int(self.uppery)))
 
     def _constrain(self, oldval, diff, dimsize):
@@ -98,14 +99,10 @@ class GooMPy(object):
 
     def get_lon_from_x(self, x):
         x += self.leftx
-        print(f'leftx: {self.leftx}, x: {x}')
-
         return _x_to_lon(x - 0.5 * self.ntiles * _TILESIZE, self.lon, self.zoom)
 
     def get_lat_from_y(self, y):
         y += self.uppery
-        print(f'uppery: {self.uppery}, y: {y}')
-
         return _y_to_lat(y - 0.5 * self.ntiles * _TILESIZE, self.lat, self.zoom)
 
     def get_x_from_lon(self, lon):

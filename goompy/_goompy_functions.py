@@ -44,6 +44,10 @@ def _new_image(width, height):
     return PIL.Image.new('RGB', (width, height))
 
 
+def _init_big_image(ntiles):
+    return PIL.Image.new('RGB', (ntiles * _TILESIZE, ntiles * _TILESIZE))
+
+
 def _roundto(value, digits):
     return int(value * 10**digits) / 10.**digits
 
@@ -86,6 +90,7 @@ def _grab_tile(lat, lon, zoom, maptype, _TILESIZE, sleeptime):
 
 
 def _x_to_lon(x, longitude, zoom):
+    ''' converts x (pixels bigimage) to longitude '''
     longitude = _roundto(longitude, _DEGREE_PRECISION)
     lonpix = _EARTHPIX + longitude * m.radians(_pixrad)
 
@@ -94,6 +99,7 @@ def _x_to_lon(x, longitude, zoom):
 
 
 def _y_to_lat(y, latitude, zoom):
+    ''' converts y (pixels bigimage) to latitude '''
     latitude = _roundto(latitude, _DEGREE_PRECISION)
     sinlat = m.sin(m.radians(latitude))
     latpix = _EARTHPIX - _pixrad * m.log((1 + sinlat)/(1 - sinlat)) / 2
@@ -104,6 +110,7 @@ def _y_to_lat(y, latitude, zoom):
 
 
 def _lon_to_x(lon, longitude, ntiles, zoom):
+    ''' converts longitude to x in pixels bigimage '''
     lonpix = _EARTHPIX + longitude * m.radians(_pixrad)
     lon = m.radians(lon)
     return round((_EARTHPIX + lon * _pixrad - lonpix) / _zoom_factor(zoom)
@@ -111,6 +118,7 @@ def _lon_to_x(lon, longitude, ntiles, zoom):
 
 
 def _lat_to_y(lat, latitude, ntiles, zoom):
+    ''' converts latitude to y in pixels bigimage '''
     sinlat = m.sin(m.radians(latitude))
     latpix = _EARTHPIX - _pixrad * m.log((1 + sinlat)/(1 - sinlat)) / 2
 
@@ -158,6 +166,7 @@ def _fetch_tiles(
 
     # TODO: DEBUG PRINT LINE
     print(f'------------------------------------------------\n'
+          f'center point: {longitude}, {latitude}\n'
           f'west: {west:0.4f}, east: {east:0.4f}\n'
           f'north: {north:0.4f}, south: {south:0.4f}\n'
           f'tiles: {ntiles}, zoom: {zoom}')

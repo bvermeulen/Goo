@@ -17,11 +17,13 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 Updated by Bruno Vermeulen @2019
 '''
 import tkinter as tk
-from PIL import ImageTk, Image
+from PIL import ImageTk
 from goompy import GooMPy
 
-WIDTH = 640
-HEIGHT = 640
+WIDTH = 800
+HEIGHT = 500
+MAX_SYMBOL_SIZE = 100
+DEFAULT_SYMBOL_SIZE = 7
 
 # LATITUDE = 13.8135822
 # LONGITUDE = 99.7146769
@@ -69,8 +71,7 @@ class UI(tk.Tk):
         maptype_index = 0
         self.radiovar.set(maptype_index)
 
-        self.goompy = GooMPy(
-            WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, MAPTYPE, radius_meters=None)
+        self.goompy = GooMPy(WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, radius_meters=None)
 
         self.goompy.use_map_type(MAPTYPE)
         self.redraw()
@@ -79,10 +80,6 @@ class UI(tk.Tk):
         button = tk.Button(
             self.canvas, text=text, width=1, command=lambda: self.zoom(sign))
         return button
-
-    def reload(self):
-        self.coords = None
-        self.redraw()
 
     def set_cursor_to_normal(self):
         self.config(cursor='')
@@ -100,10 +97,10 @@ class UI(tk.Tk):
 
     def click(self, event):
         self.coords = event.x, event.y
-        lon = self.goompy.get_lon_from_x(event.x)
-        lat = self.goompy.get_lat_from_y(event.y)
-        print(f'(x, y): {self.coords} '
-              f'(lon, lat): ({lon:0.4f}, {lat:0.4f})')
+        lon = self.goompy.get_lon_from_x(self.coords[0])
+        lat = self.goompy.get_lat_from_y(self.coords[1])
+        print(f'x: {self.coords[0]}, y: {self.coords[1]} '
+              f'lon: {lon:.4f}, lat: {lat:.4f}')
 
     def drag(self, event):
         self.goompy.move(self.coords[0] - event.x, self.coords[1] - event.y)
@@ -111,22 +108,21 @@ class UI(tk.Tk):
         self.coords = event.x, event.y
 
     def redraw(self):
+        # clear the canvas
+        self.canvas.delete('all')
+
         image = self.goompy.get_image()
         self.my_image = ImageTk.PhotoImage(image)
-        self.canvas.create_image(0,0, image=self.my_image, anchor='nw')
-
-        # self.label['image'] = self.my_image
-        # self.label.place(x=0, y=0, width=WIDTH, height=HEIGHT)
+        self.canvas.create_image(0, 0, image=self.my_image, anchor='nw')
 
         self.radiogroup.place(x=0, y=0)
 
         x = int(self.canvas['width']) - 50
         y = int(self.canvas['height']) - 80
-
         self.zoom_in_button.place(x=x, y=y)
         self.zoom_out_button.place(x=x, y=y + 30)
 
-        self.draw_point(LATITUDE, LONGITUDE)
+        self.draw_point(LATITUDE, LONGITUDE, fill='blue')
 
     def usemap(self, maptype):
         self.set_cursor_to_wait()
@@ -144,11 +140,22 @@ class UI(tk.Tk):
 
         self.set_cursor_to_normal()
 
-    def draw_point(self, lat, lon):
+    def draw_point(self, lat, lon, size=None, **kwargs):
         x = self.goompy.get_xwin_from_lon(lon)
         y = self.goompy.get_ywin_from_lat(lat)
-        bbox = (x - 10, y - 10, x + 20, y + 20)
-        self.canvas.create_oval(*bbox, fill='red')
+
+        if size is None:
+            size = int(DEFAULT_SYMBOL_SIZE / 2)
+
+        elif not -1 < size <= MAX_SYMBOL_SIZE:
+            raise ValueError(f'size drawing object must be positive and '
+                             f'less than {MAX_SYMBOL_SIZE + 1}')
+
+        else:
+            size = int(size/2)
+
+        bbox = (x - size, y - size, x + size, y + size)
+        self.canvas.create_oval(*bbox, **kwargs)
 
     def check_quit(self, event):
         if ord(event.char) == 27:  # ESC
