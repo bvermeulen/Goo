@@ -36,16 +36,13 @@ _EARTHPIX = 268435456  # Number of pixels in half the earth's circumference at z
 _DEGREE_PRECISION = 4  # Number of decimal places for rounding coordinates
 _TILESIZE = 640        # Larget tile we can grab without paying (was 640)
 _GRABRATE = 4          # Fastest rate at which we can download tiles without paying
+_MAPSCACHE_PATH = 'd:/temp/mapscache/'
 
 _pixrad = _EARTHPIX / m.pi
 
 
 def _new_image(width, height):
     return PIL.Image.new('RGB', (width, height))
-
-
-def _init_big_image(ntiles):
-    return PIL.Image.new('RGB', (ntiles * _TILESIZE, ntiles * _TILESIZE))
 
 
 def _roundto(value, digits):
@@ -63,7 +60,7 @@ def _grab_tile(lat, lon, zoom, maptype, _TILESIZE, sleeptime):
 
     specs = lat, lon, zoom, maptype, _TILESIZE, _TILESIZE
 
-    filename = 'mapscache/' + ('%f_%f_%d_%s_%d_%d' % specs) + '.jpg'
+    filename = _MAPSCACHE_PATH + ('%f_%f_%d_%s_%d_%d' % specs) + '.jpg'
 
     tile = None
 
@@ -80,8 +77,8 @@ def _grab_tile(lat, lon, zoom, maptype, _TILESIZE, sleeptime):
         if tile.mode != 'RGB':
             tile = tile.convert('RGB')
 
-        if not os.path.exists('mapscache'):
-            os.mkdir('mapscache')
+        if not os.path.exists(_MAPSCACHE_PATH):
+            os.mkdir(_MAPSCACHE_PATH)
 
         tile.save(filename)
         time.sleep(sleeptime)  # Choke back speed to avoid maxing out limit
@@ -128,6 +125,11 @@ def _lat_to_y(lat, latitude, ntiles, zoom):
     return round(pix + 0.5 * ntiles * _TILESIZE)
 
 
+def pixels_per_meter(latitude, zoom):
+    # https://groups.google.com/forum/#!topic/google-maps-js-api-v3/hDRO4oHVSeM
+    return 2 ** zoom / (156543.03392 * m.cos(m.radians(latitude)))
+
+
 def _fetch_tiles(
         latitude, longitude, zoom, maptype, radius_meters, default_ntiles):
     '''
@@ -139,12 +141,15 @@ def _fetch_tiles(
     latitude = _roundto(latitude, _DEGREE_PRECISION)
     longitude = _roundto(longitude, _DEGREE_PRECISION)
 
-    # https://groups.google.com/forum/#!topic/google-maps-js-api-v3/hDRO4oHVSeM
-    pixels_per_meter = 2**zoom / (156543.03392 * m.cos(m.radians(latitude)))
-
     # number of tiles required to go from center latitude to desired radius in meters
-    ntiles = default_ntiles if radius_meters is None else (
-        int(round(2 * pixels_per_meter / (_TILESIZE / 2. / radius_meters))))
+    if radius_meters:
+        pix = radius_meters * 2 * pixels_per_meter(latitude, zoom)
+        print(f'pix: {pix:.0f}')
+        ntiles = m.ceil(pix / _TILESIZE)
+        if ntiles == 0:
+            ntiles = 1
+    else:
+        ntiles = default_ntiles
 
     bigsize = ntiles * _TILESIZE
     bigimage = _new_image(bigsize, bigsize)
@@ -155,7 +160,7 @@ def _fetch_tiles(
         for k in range(ntiles):
             lat = _y_to_lat((k - ntiles / 2 + 0.5) * _TILESIZE, latitude, zoom)
 
-            tile = _grab_tile(lat, lon, zoom, maptype, _TILESIZE, 1./_GRABRATE)
+            tile = _grab_tile(lat, lon, zoom, maptype, _TILESIZE, 1/ _GRABRATE)
             bigimage.paste(tile, (j * _TILESIZE, k * _TILESIZE))
 
     west = _x_to_lon(-ntiles / 2 * _TILESIZE, longitude, zoom)
@@ -169,6 +174,7 @@ def _fetch_tiles(
           f'center point: {longitude}, {latitude}\n'
           f'west: {west:0.4f}, east: {east:0.4f}\n'
           f'north: {north:0.4f}, south: {south:0.4f}\n'
-          f'tiles: {ntiles}, zoom: {zoom}')
+          f'tiles: {ntiles}, radius: {radius_meters}, zoom: {zoom}\n'
+          f'------------------------------------------------')
 
     return bigimage, ntiles, (north, west), (south, east)

@@ -20,19 +20,19 @@ import tkinter as tk
 from PIL import ImageTk
 from goompy import GooMPy
 
-WIDTH = 800
-HEIGHT = 500
+WIDTH = 640
+HEIGHT = 640
 MAX_SYMBOL_SIZE = 100
 DEFAULT_SYMBOL_SIZE = 7
 
-# LATITUDE = 13.8135822
-# LONGITUDE = 99.7146769
+LATITUDE = 13.8135822
+LONGITUDE = 99.7146769
 # LATITUDE = -33.8566
 # LONGITUDE = 151.2153
-LATITUDE = -34.6246
-LONGITUDE = -58.4017
+# LATITUDE = 0
+# LONGITUDE = 0
 
-ZOOM = 15
+ZOOM = 10
 MAPTYPE = 'roadmap'
 
 
@@ -41,37 +41,32 @@ class UI(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
 
-        self.geometry('%dx%d+500+500' % (WIDTH, HEIGHT))
-        # self.geometry(f'{WIDTH}x{HEIGHT}')
+        self.geometry(f'{WIDTH}x{HEIGHT}')
         self.title('GooMPy')
 
         self.canvas = tk.Canvas(self, width=WIDTH, height=HEIGHT)
-
         self.canvas.pack(fill='both')
 
         self.bind("<Key>", self.check_quit)
         self.bind('<B1-Motion>', self.drag)
         self.bind('<Button-1>', self.click)
 
-        self.label = tk.Label(self.canvas)
-
         self.radiogroup = tk.Frame(self.canvas)
         self.radiovar = tk.IntVar()
         self.maptypes = ['roadmap', 'terrain', 'satellite', 'hybrid']
-        self.add_radio_button('Road Map', 0)
-        self.add_radio_button('Terrain', 1)
-        self.add_radio_button('Satellite', 2)
-        self.add_radio_button('Hybrid', 3)
+        self.add_radio_button(0)
+        self.add_radio_button(1)
+        self.add_radio_button(2)
+        self.add_radio_button(3)
 
         self.zoom_in_button = self.add_zoom_button('+', +1)
         self.zoom_out_button = self.add_zoom_button('-', -1)
 
         self.zoomlevel = ZOOM
+        self.radiovar.set(0)
 
-        maptype_index = 0
-        self.radiovar.set(maptype_index)
-
-        self.goompy = GooMPy(WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, radius_meters=None)
+        self.goompy = GooMPy(
+            WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, radius_meters=50_000)
 
         self.goompy.use_map_type(MAPTYPE)
         self.redraw()
@@ -90,7 +85,7 @@ class UI(tk.Tk):
         self.config(cursor='watch')
         self.update_idletasks()
 
-    def add_radio_button(self, _, index):
+    def add_radio_button(self, index):
         maptype = self.maptypes[index]
         tk.Radiobutton(self.radiogroup, text=maptype, variable=self.radiovar, value=index,
                        command=lambda: self.usemap(maptype)).grid(row=0, column=index)
@@ -99,6 +94,8 @@ class UI(tk.Tk):
         self.coords = event.x, event.y
         lon = self.goompy.get_lon_from_x(self.coords[0])
         lat = self.goompy.get_lat_from_y(self.coords[1])
+
+        # TODO debug print statement
         print(f'x: {self.coords[0]}, y: {self.coords[1]} '
               f'lon: {lon:.4f}, lat: {lat:.4f}')
 

@@ -14,14 +14,14 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 
 Updated by Bruno Vermeulen @2019
 '''
-from ._goompy_functions import (_TILESIZE, _new_image, _init_big_image, _fetch_tiles,
+from ._goompy_functions import (_TILESIZE, _new_image, _fetch_tiles,
                                 _x_to_lon, _y_to_lat, _lon_to_x, _lat_to_y)
 
 
 class GooMPy(object):
 
     def __init__(self, width, height, latitude, longitude,
-                 zoom, radius_meters=None, default_ntiles=4):
+                 zoom, radius_meters=None, default_ntiles=3):
         '''
         Creates a GooMPy object for specified display width and height at the specified
         coordinates, zoom level (0-22), and map type ('roadmap', 'terrain', 'satellite',
@@ -39,12 +39,10 @@ class GooMPy(object):
         self.ntiles = default_ntiles
 
         self.winimage = _new_image(self.width, self.height)
-        self.bigimage = _init_big_image(self.ntiles)
 
-        self.halfsize = int(self.bigimage.size[0] / 2)
-        self.leftx = self.halfsize - self.width / 2
-        self.uppery = self.halfsize - self.height / 2
-
+        self.bigimage = None
+        self.leftx = None
+        self.uppery = None
         self.maptype = None
 
     def use_map_type(self, maptype):
@@ -82,13 +80,15 @@ class GooMPy(object):
         # change zoom, fetch new tiles and center
         self.zoom = zoom
         self._fetch()
-        self.leftx = self.halfsize - self.width / 2
-        self.uppery = self.halfsize - self.height / 2
         self._update()
 
     def _fetch(self):
         self.bigimage, self.ntiles, self.northwest, self.southeast = _fetch_tiles(
             self.lat, self.lon, self.zoom, self.maptype, self.radius_meters, self.ntiles)
+
+        halfsize = int(self.bigimage.size[0] / 2)
+        self.leftx = halfsize - self.width / 2
+        self.uppery = halfsize - self.height / 2
 
     def _update(self):
         self.winimage.paste(self.bigimage, (-int(self.leftx), -int(self.uppery)))
