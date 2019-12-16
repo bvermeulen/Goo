@@ -125,9 +125,18 @@ def _lat_to_y(lat, latitude, ntiles, zoom):
     return round(pix + 0.5 * ntiles * _TILESIZE)
 
 
-def pixels_per_meter(latitude, zoom):
+def _pixels_per_meter(latitude, zoom):
     # https://groups.google.com/forum/#!topic/google-maps-js-api-v3/hDRO4oHVSeM
     return 2 ** zoom / (156543.03392 * m.cos(m.radians(latitude)))
+
+
+def _find_largest_zoom_to_fit_one_tile(latitude, radius):
+    for zoom in range(21, 0, -1):
+        pix = radius * 2 * _pixels_per_meter(latitude, zoom)
+        if  pix <= _TILESIZE:
+            return zoom
+
+    raise ValueError('No zoom found')
 
 
 def _fetch_tiles(
@@ -143,11 +152,11 @@ def _fetch_tiles(
 
     # number of tiles required to go from center latitude to desired radius in meters
     if radius_meters:
-        pix = radius_meters * 2 * pixels_per_meter(latitude, zoom)
+        pix = radius_meters * 2 * _pixels_per_meter(latitude, zoom)
         print(f'pix: {pix:.0f}')
         ntiles = m.ceil(pix / _TILESIZE)
-        if ntiles == 0:
-            ntiles = 1
+        if ntiles < default_ntiles:
+            ntiles = default_ntiles
     else:
         ntiles = default_ntiles
 

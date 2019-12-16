@@ -15,6 +15,7 @@ along with this code.  If not, see <http://www.gnu.org/licenses/>.
 Updated by Bruno Vermeulen @2019
 '''
 from ._goompy_functions import (_TILESIZE, _new_image, _fetch_tiles,
+                                _find_largest_zoom_to_fit_one_tile,
                                 _x_to_lon, _y_to_lat, _lon_to_x, _lat_to_y)
 
 
@@ -36,7 +37,7 @@ class GooMPy(object):
         self.width = width
         self.height = height
         self.radius_meters = radius_meters
-        self.ntiles = default_ntiles
+        self.default_ntiles = default_ntiles
 
         self.winimage = _new_image(self.width, self.height)
 
@@ -44,6 +45,7 @@ class GooMPy(object):
         self.leftx = None
         self.uppery = None
         self.maptype = None
+        self.ntiles = None
 
     def use_map_type(self, maptype):
         '''
@@ -51,6 +53,9 @@ class GooMPy(object):
         Map tiles are fetched as needed.
         '''
         self.maptype = maptype
+        if self.radius_meters:
+            self.zoom = _find_largest_zoom_to_fit_one_tile(self.lat, self.radius_meters)
+
         self._fetch()
         self._update()
 
@@ -82,9 +87,14 @@ class GooMPy(object):
         self._fetch()
         self._update()
 
+    @property
+    def get_zoom(self):
+        return self.zoom
+
     def _fetch(self):
         self.bigimage, self.ntiles, self.northwest, self.southeast = _fetch_tiles(
-            self.lat, self.lon, self.zoom, self.maptype, self.radius_meters, self.ntiles)
+            self.lat, self.lon, self.zoom, self.maptype,
+            self.radius_meters, self.default_ntiles)
 
         halfsize = int(self.bigimage.size[0] / 2)
         self.leftx = halfsize - self.width / 2

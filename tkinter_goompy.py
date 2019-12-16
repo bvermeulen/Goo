@@ -33,6 +33,7 @@ LONGITUDE = 99.7146769
 # LONGITUDE = 0
 
 ZOOM = 10
+RADIUS = 500
 MAPTYPE = 'roadmap'
 
 
@@ -66,7 +67,7 @@ class UI(tk.Tk):
         self.radiovar.set(0)
 
         self.goompy = GooMPy(
-            WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, radius_meters=50_000)
+            WIDTH, HEIGHT, LATITUDE, LONGITUDE, ZOOM, radius_meters=RADIUS)
 
         self.goompy.use_map_type(MAPTYPE)
         self.redraw()
@@ -129,6 +130,7 @@ class UI(tk.Tk):
 
     def zoom(self, sign):
         self.set_cursor_to_wait()
+        self.zoomlevel = self.goompy.get_zoom
         newlevel = self.zoomlevel + sign
         if 0 < newlevel < 22:
             self.zoomlevel = newlevel
